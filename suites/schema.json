@@ -1,0 +1,141 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.invalid/video-skill-evals/suites/schema.json",
+  "title": "video-skill-evals prompt suite",
+  "description": "A prompt suite is a list of evaluation cases. The canonical on-disk form is an object with metadata plus a 'cases' array; a bare array of cases is also accepted so that a hand-written suite can be the shortest possible file. Loaders should normalise with: cases = suite['cases'] if isinstance(suite, dict) else suite.",
+  "oneOf": [
+    { "$ref": "#/definitions/suiteObject" },
+    { "$ref": "#/definitions/caseArray" }
+  ],
+  "definitions": {
+    "suiteObject": {
+      "type": "object",
+      "required": ["version", "name", "cases"],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Suite format version. Bump on any breaking shape change."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Short identifier for the suite, e.g. 'default'."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable statement of what this suite is for."
+        },
+        "cases": { "$ref": "#/definitions/caseArray" }
+      }
+    },
+    "caseArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/case" }
+    },
+    "case": {
+      "type": "object",
+      "required": ["id", "band", "prompt", "assertions", "probes", "notes"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "description": "Stable, filesystem-safe case identifier. Used as the per-case work directory name, so it must never change once results exist for it."
+        },
+        "band": {
+          "type": "string",
+          "enum": ["simple", "medium", "hard", "adversarial"],
+          "description": "Difficulty band. Cost and latency budgets are configured per band."
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Verbatim user-role prompt handed to the agent under test. It must not mention the rubric, the probes, or this harness: the agent is being graded on what the skill makes it do unprompted."
+        },
+        "assertions": { "$ref": "#/definitions/assertions" },
+        "probes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/probe" },
+          "description": "Documented failure modes this case deliberately targets. Every entry names a mode from jaime-troubleshooting.md (or the pitfalls list carried over from Sam's rubric)."
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Why this case exists and what a tripped probe would look like in the artifact. Read by humans triaging a failure, so it must say what to go and look at."
+        }
+      }
+    },
+    "assertions": {
+      "type": "object",
+      "description": "Machine-checkable, deterministically evaluated per-case expectations. Replaces the hand-written per-run job-spec of the prior art. All five keys are required so that a missing expectation is never silently treated as 'anything goes'.",
+      "required": ["duration_s", "min_scenes", "aspect_ratio", "required_concepts", "language"],
+      "additionalProperties": false,
+      "properties": {
+        "duration_s": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "type": "number", "exclusiveMinimum": 0 },
+          "description": "Inclusive [min, max] finished-runtime window in seconds, measured by ffprobe on the delivered file."
+        },
+        "min_scenes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Minimum number of distinct scenes/shots the finished video must contain."
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "pattern": "^[0-9]+:[0-9]+$",
+          "description": "Required display aspect ratio, e.g. '16:9' or '9:16'."
+        },
+        "required_concepts": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Concepts that must be present in the narration script and/or on screen. Checked case-insensitively against the narration text first (deterministic), and only escalated to the judge when the deterministic pass does not find them."
+        },
+        "language": {
+          "type": "string",
+          "pattern": "^[a-z]{2}(-[A-Za-z0-9]+)*$",
+          "description": "BCP-47-ish language tag the narration and captions must be in, e.g. 'en'."
+        }
+      }
+    },
+    "probe": {
+      "type": "string",
+      "enum": [
+        "fresh-shell-per-scene",
+        "front-loaded-narration",
+        "caption-geometry-pollution",
+        "end-black-gap",
+        "orphan-caption-cue",
+        "black-render-reported-success",
+        "silent-output",
+        "missing-result-line",
+        "stall-watchdog-120s",
+        "asset-path-parent-traversal",
+        "missing-local-asset",
+        "gsap-exit-missing-hard-kill",
+        "root-composition-missing-data-start",
+        "frame-0-blank-by-design",
+        "text-rendered-into-image",
+        "captions-not-from-asr",
+        "retired-model-404",
+        "refusal-retried-verbatim",
+        "reroll-cost-blowout",
+        "confabulated-pii",
+        "on-screen-secret",
+        "narration-contradicts-screen",
+        "music-not-ducked",
+        "loudness-off-target"
+      ],
+      "description": "Closed vocabulary of documented failure modes. Closed on purpose: a typo'd probe name would otherwise silently create a mode nothing reports on."
+    }
+  }
+}

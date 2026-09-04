@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "video-skill-evals"
+version = "0.1.0"
+description = "CLI-driven evaluator pipeline for the video-composition skill (generate -> measure -> score/report)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+
+# Runtime dependencies are deliberately EMPTY: the pipeline is Python
+# standard library only. External binaries (ffmpeg/ffprobe) are discovered
+# on PATH at runtime, not installed via pip.
+dependencies = []
+
+[project.scripts]
+video-skill-evals = "evals.cli:main"
+
+[tool.setuptools]
+packages = ["evals"]
+
+[tool.setuptools.package-data]
+evals = ["py.typed"]

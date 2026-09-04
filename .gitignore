@@ -1,0 +1,38 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Packaging / build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local configuration & secrets (never commit real credentials)
+.env
+*.local.json
+config.local.json
+
+# Run artefacts: generated videos, measurements, reports are large and
+# reproducible, so they stay out of version control.
+runs/
+out/
+artifacts/
+*.mp4
+*.mov
+*.wav
+*.mkv
+
+# Editor / OS noise
+.idea/
+.vscode/
+.DS_Store
