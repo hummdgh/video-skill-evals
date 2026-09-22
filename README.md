@@ -180,14 +180,6 @@ is flagged as a regression even though it still passes.
 
 Stated plainly:
 
-- **Nothing here has ever evaluated a real video.** This is the big one.
-  `--live` has never been run: no real agent runtime has been driven, and every
-  number produced so far comes from the mock adapter and the mock judge
-  backend. The plumbing is exercised end to end; the evaluation is not yet
-  evidence about any actual skill.
-- **The HTTP judge backend has never been called.** The `mock` backend is
-  fully exercised — prompt rendering, median-of-n sampling, threshold
-  application, evidence capture. The path to a real model is wired but unproven.
 - **Caption geometry is unreliable on busy backgrounds.** It is implemented and
   accurate where captions have normal treatment: measured against burned-in
   ground truth it returns centre-x `0.4992` for a centred line and correctly
